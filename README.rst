@@ -1,6 +1,10 @@
 String to Markdown Id
 #####################
 
+.. image:: https://readthedocs.org/projects/string-to-markdown-id/badge/?version=latest
+   :target: https://string-to-markdown-id.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
+
 Convert string to GitLab Flavored Markdown Header ID `[1] <https://docs.gitlab.com/ee/user/markdown.html#header-ids-and-links>`_
 
 
