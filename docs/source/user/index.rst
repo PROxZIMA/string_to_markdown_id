@@ -34,7 +34,7 @@ This will install ``string_to_markdown_id`` and all of its dependencies.
 API Reference
 =============
 
-The `API Reference <http://string_to_markdown_id.readthedocs.io>`_ provides API-level documentation.
+The `API Reference <../api/>`_ provides API-level documentation.
 
 
 .. include:: ../../../CHANGELOG.rst
