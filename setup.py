@@ -38,6 +38,9 @@ def parse_requirements(filename):
 
 requirements = parse_requirements("requirements.txt")
 
+docs_extras = [
+    "Sphinx >= 3.0.0",  # Force RTD to use >= 3.0.0
+]
 
 if __name__ == "__main__":
     setup(
@@ -52,6 +55,7 @@ if __name__ == "__main__":
         maintainer="PROxZIMA",
         maintainer_email="contact@proxzima.dev",
         install_requires=requirements,
+        extras_require={"docs": docs_extras},
         keywords=["string_to_markdown_id"],
         package_dir={"": "src"},
         packages=find_packages("src"),

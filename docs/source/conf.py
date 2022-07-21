@@ -12,7 +12,7 @@ import sys
 
 from sphinx.ext import apidoc
 
-# sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath("."))
 
 
 regexp = re.compile(r".*__version__ = [\'\"](.*?)[\'\"]", re.S)
@@ -128,7 +128,7 @@ html_sidebars = {
 
 def run_apidoc(_):
     output_path = os.path.join(repo_root, "docs", "source", "api")
-    apidoc.main(["-o", output_path, "-f", pkg_root])
+    apidoc.main(["-e", "-o", output_path, "-f", pkg_root])
 
 
 def setup(app):
