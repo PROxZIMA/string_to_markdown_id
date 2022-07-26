@@ -111,7 +111,6 @@ check-static-analysis: check-lint check-types
 # help: docs                           - generate project documentation
 .PHONY: docs
 docs: coverage
-	@cd docs; rm -rf source/api/string_to_markdown_id*.rst source/api/modules.rst build/*
 	@cd docs; make html
 
 
