@@ -1,0 +1,133 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>2.1.1. string_to_markdown_id package &#8212; String to Markdown Id 0.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="3. Developers Guide" href="../dev/index.html" />
+    <link rel="prev" title="2.1. string_to_markdown_id" href="modules.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="string-to-markdown-id-package">
+<h1><span class="section-number">2.1.1. </span>string_to_markdown_id package<a class="headerlink" href="#string-to-markdown-id-package" title="Permalink to this heading">¶</a></h1>
+<section id="module-string_to_markdown_id">
+<span id="module-contents"></span><h2><span class="section-number">2.1.1.1. </span>Module contents<a class="headerlink" href="#module-string_to_markdown_id" title="Permalink to this heading">¶</a></h2>
+<p>Convert string to GitLab Flavored Markdown Header ID</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="string_to_markdown_id.convertToMarkdownId">
+<span class="sig-prename descclassname"><span class="pre">string_to_markdown_id.</span></span><span class="sig-name descname"><span class="pre">convertToMarkdownId</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queries</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_multi_hyphens</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/string_to_markdown_id.html#convertToMarkdownId"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#string_to_markdown_id.convertToMarkdownId" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert list of query strings or a single string to [GLFM Header ID](<a class="reference external" href="https://docs.gitlab.com/ee/user/markdown.html#header-ids-and-links">https://docs.gitlab.com/ee/user/markdown.html#header-ids-and-links</a>)</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>param1: List of strings or a single string.
+param2: True to ignore [Rule 4](<a class="reference external" href="https://docs.gitlab.com/ee/user/markdown.html#header-ids-and-links">https://docs.gitlab.com/ee/user/markdown.html#header-ids-and-links</a>).</p>
+</dd>
+<dt>Returns:</dt><dd><p>List of corresponding IDs or a single string ID.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="string_to_markdown_id.dropNonWord">
+<span class="sig-prename descclassname"><span class="pre">string_to_markdown_id.</span></span><span class="sig-name descname"><span class="pre">dropNonWord</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/string_to_markdown_id.html#dropNonWord"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#string_to_markdown_id.dropNonWord" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rule 2. All non-word text (such as punctuation or HTML except ‘-’ and space ) is removed.</p>
+<p>Replace actual TAB.          is converted to t in raw conversion.
+A sole       might be there in string because of the TAB unicode in the string.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="string_to_markdown_id.hyphensManyToOne">
+<span class="sig-prename descclassname"><span class="pre">string_to_markdown_id.</span></span><span class="sig-name descname"><span class="pre">hyphensManyToOne</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/string_to_markdown_id.html#hyphensManyToOne"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#string_to_markdown_id.hyphensManyToOne" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rule 4. Two or more hyphens in a row are converted to one.</p>
+<p>Note: Ignored in Github Markdown</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="string_to_markdown_id.manageDuplicates">
+<span class="sig-prename descclassname"><span class="pre">string_to_markdown_id.</span></span><span class="sig-name descname"><span class="pre">manageDuplicates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">generated</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/string_to_markdown_id.html#manageDuplicates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#string_to_markdown_id.manageDuplicates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rule 5. If a header with the same ID has already been generated, a unique incrementing number is appended, starting at 1.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="string_to_markdown_id.replaceSpaceWithHyphen">
+<span class="sig-prename descclassname"><span class="pre">string_to_markdown_id.</span></span><span class="sig-name descname"><span class="pre">replaceSpaceWithHyphen</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/string_to_markdown_id.html#replaceSpaceWithHyphen"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#string_to_markdown_id.replaceSpaceWithHyphen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rule 3. All spaces are converted to hyphens. (space unicode not s)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="string_to_markdown_id.toLowerCase">
+<span class="sig-prename descclassname"><span class="pre">string_to_markdown_id.</span></span><span class="sig-name descname"><span class="pre">toLowerCase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/string_to_markdown_id.html#toLowerCase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#string_to_markdown_id.toLowerCase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rule 1. All text is converted to lowercase.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">String to Markdown Id</a></h1>
+
+
+
+<p class="blurb">Convert string to GitLab Flavored Markdown Header ID</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../user/index.html">1. User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">2. API</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="modules.html">2.1. string_to_markdown_id</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../dev/index.html">3. Developers Guide</a></li>
+</ul>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,246 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>string_to_markdown_id &#8212; String to Markdown Id 0.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for string_to_markdown_id</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Convert string to GitLab Flavored Markdown Header ID</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__version__</span> <span class="o">=</span> <span class="s2">&quot;0.0.1&quot;</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;convertToMarkdownId&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;toLowerCase&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;dropNonWord&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;replaceSpaceWithHyphen&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hyphensManyToOne&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;manageDuplicates&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">convertToRaw</span><span class="p">(</span><span class="n">queries</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Convert list of query strings to raw strings.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        param1: List of strings.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List of corresponding raw strings.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="nb">repr</span><span class="p">(</span><span class="sa">rf</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">query</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">query</span> <span class="ow">in</span> <span class="n">queries</span><span class="p">]</span>
+
+
+<span class="c1"># Rules</span>
+
+
+<div class="viewcode-block" id="toLowerCase"><a class="viewcode-back" href="../api/string_to_markdown_id.html#string_to_markdown_id.toLowerCase">[docs]</a><span class="k">def</span> <span class="nf">toLowerCase</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Rule 1. All text is converted to lowercase.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="dropNonWord"><a class="viewcode-back" href="../api/string_to_markdown_id.html#string_to_markdown_id.dropNonWord">[docs]</a><span class="k">def</span> <span class="nf">dropNonWord</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Rule 2. All non-word text (such as punctuation or HTML except &#39;-&#39; and space ) is removed.</span>
+
+<span class="sd">    Replace actual TAB. \t is converted to \\t in raw conversion.</span>
+<span class="sd">    A sole \t might be there in string because of the TAB unicode in the string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;(?&lt;!</span><span class="se">\\</span><span class="s2">)</span><span class="se">\\</span><span class="s2">t&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;[^\w\s-]&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="replaceSpaceWithHyphen"><a class="viewcode-back" href="../api/string_to_markdown_id.html#string_to_markdown_id.replaceSpaceWithHyphen">[docs]</a><span class="k">def</span> <span class="nf">replaceSpaceWithHyphen</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Rule 3. All spaces are converted to hyphens. (space unicode not \s)&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;[ ]&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="hyphensManyToOne"><a class="viewcode-back" href="../api/string_to_markdown_id.html#string_to_markdown_id.hyphensManyToOne">[docs]</a><span class="k">def</span> <span class="nf">hyphensManyToOne</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Rule 4. Two or more hyphens in a row are converted to one.</span>
+
+<span class="sd">    Note: Ignored in Github Markdown</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;-{2,}&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="manageDuplicates"><a class="viewcode-back" href="../api/string_to_markdown_id.html#string_to_markdown_id.manageDuplicates">[docs]</a><span class="k">def</span> <span class="nf">manageDuplicates</span><span class="p">(</span><span class="n">generated</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Rule 5. If a header with the same ID has already been generated, a unique incrementing number is appended, starting at 1.&quot;&quot;&quot;</span>
+    <span class="n">generatedCounter</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">generated</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">generated</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="n">generated</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="n">generatedCounter</span><span class="p">[</span><span class="n">query</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">generated</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;-</span><span class="si">{</span><span class="n">count</span> <span class="o">-</span> <span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">generatedCounter</span><span class="p">[</span><span class="n">query</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">generated</span></div>
+
+
+<div class="viewcode-block" id="convertToMarkdownId"><a class="viewcode-back" href="../api/string_to_markdown_id.html#string_to_markdown_id.convertToMarkdownId">[docs]</a><span class="k">def</span> <span class="nf">convertToMarkdownId</span><span class="p">(</span>
+    <span class="n">queries</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">],</span> <span class="n">ignore_multi_hyphens</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Convert list of query strings or a single string to [GLFM Header ID](https://docs.gitlab.com/ee/user/markdown.html#header-ids-and-links)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        param1: List of strings or a single string.</span>
+<span class="sd">        param2: True to ignore [Rule 4](https://docs.gitlab.com/ee/user/markdown.html#header-ids-and-links).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List of corresponding IDs or a single string ID.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">isString</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">queries</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">isString</span><span class="p">:</span>
+        <span class="n">queries</span> <span class="o">=</span> <span class="p">[</span><span class="n">queries</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">queries</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Argument must be a list of strings or a single string. Found: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">queries</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">queries</span> <span class="o">=</span> <span class="n">convertToRaw</span><span class="p">(</span><span class="n">queries</span><span class="p">)</span>
+
+    <span class="n">rules</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">toLowerCase</span><span class="p">,</span>
+        <span class="n">dropNonWord</span><span class="p">,</span>
+        <span class="n">replaceSpaceWithHyphen</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ignore_multi_hyphens</span><span class="p">:</span>
+        <span class="n">rules</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hyphensManyToOne</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">queries</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">rules</span><span class="p">:</span>
+            <span class="n">queries</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">rule</span><span class="p">(</span><span class="n">queries</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+    <span class="n">generated</span> <span class="o">=</span> <span class="n">manageDuplicates</span><span class="p">(</span><span class="n">queries</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">generated</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">isString</span> <span class="k">else</span> <span class="n">generated</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;List usage -&gt;&quot;</span><span class="p">)</span>
+
+    <span class="n">testQueries</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;(This) --- --v - &quot; &quot;&quot; &#39; &#39; has 2.5, 😀, 한글, :thumbsup:, 	, \n, \r, \t, \f, \u, \a, \x, \\t&quot;&quot;&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;this-------v-------has-25--한글-thumbsup--n-r-t-f-u-a-x-t&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">expected</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;this-v-has-25-한글-thumbsup-n-r-t-f-u-a-x-t&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;this-v-has-25-한글-thumbsup-n-r-t-f-u-a-x-t-1&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">expectedHyphenIgnore</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;this-------v-------has-25--한글-thumbsup--n-r-t-f-u-a-x-t&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;this-------v-------has-25--한글-thumbsup--n-r-t-f-u-a-x-t-1&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Given queries:</span><span class="se">\n</span><span class="si">{</span><span class="n">testQueries</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">gens</span> <span class="o">=</span> <span class="n">convertToMarkdownId</span><span class="p">(</span><span class="n">testQueries</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Generated IDs:</span><span class="se">\n</span><span class="si">{</span><span class="n">gens</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expected IDs:</span><span class="se">\n</span><span class="si">{</span><span class="n">expected</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">gens</span> <span class="o">==</span> <span class="n">expected</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">gens</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="n">expected</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gens</span><span class="p">,</span> <span class="nb">list</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">gens</span><span class="si">}</span><span class="s2"> is not a list&quot;</span>
+
+    <span class="n">gens</span> <span class="o">=</span> <span class="n">convertToMarkdownId</span><span class="p">(</span><span class="n">testQueries</span><span class="p">,</span> <span class="n">ignore_multi_hyphens</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Generated IDs (Hyphen Ignored):</span><span class="se">\n</span><span class="si">{</span><span class="n">gens</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expected IDs (Hyphen Ignored):</span><span class="se">\n</span><span class="si">{</span><span class="n">expectedHyphenIgnore</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">gens</span> <span class="o">==</span> <span class="n">expectedHyphenIgnore</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">gens</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="n">expectedHyphenIgnore</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gens</span><span class="p">,</span> <span class="nb">list</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">gens</span><span class="si">}</span><span class="s2"> is not a list&quot;</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;String usage -&gt;&quot;</span><span class="p">)</span>
+
+    <span class="n">testQuery</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;&quot;&quot;(This) --- --v - &quot; &quot;&quot; &#39; &#39; has 2.5, 😀, 한글, :thumbsup:, 	, \n, \r, \t, \f, \u, \a, \x, \\t&quot;&quot;&quot;</span>
+    <span class="n">expected</span> <span class="o">=</span> <span class="s2">&quot;this-v-has-25-한글-thumbsup-n-r-t-f-u-a-x-t&quot;</span>
+    <span class="n">expectedHyphenIgnore</span> <span class="o">=</span> <span class="s2">&quot;this-------v-------has-25--한글-thumbsup--n-r-t-f-u-a-x-t&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Given query:</span><span class="se">\n</span><span class="si">{</span><span class="n">testQuery</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">gens</span> <span class="o">=</span> <span class="n">convertToMarkdownId</span><span class="p">(</span><span class="n">testQuery</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Generated ID:</span><span class="se">\n</span><span class="si">{</span><span class="n">gens</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expected ID:</span><span class="se">\n</span><span class="si">{</span><span class="n">expected</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">gens</span> <span class="o">==</span> <span class="n">expected</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">gens</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="n">expected</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gens</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">gens</span><span class="si">}</span><span class="s2"> is not a string&quot;</span>
+
+    <span class="n">gens</span> <span class="o">=</span> <span class="n">convertToMarkdownId</span><span class="p">(</span><span class="n">testQuery</span><span class="p">,</span> <span class="n">ignore_multi_hyphens</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Generated ID (Hyphen Ignored):</span><span class="se">\n</span><span class="si">{</span><span class="n">gens</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expected ID (Hyphen Ignored):</span><span class="se">\n</span><span class="si">{</span><span class="n">expectedHyphenIgnore</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">gens</span> <span class="o">==</span> <span class="n">expectedHyphenIgnore</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">gens</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="n">expectedHyphenIgnore</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gens</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">gens</span><span class="si">}</span><span class="s2"> is not a string&quot;</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">String to Markdown Id</a></h1>
+
+
+
+<p class="blurb">Convert string to GitLab Flavored Markdown Header ID</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user/index.html">1. User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">2. API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dev/index.html">3. Developers Guide</a></li>
+</ul>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
